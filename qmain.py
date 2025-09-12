@@ -14,7 +14,7 @@ except ImportError:
     st.error("Missing 'xlrd' library required for .xls files. Install it using: `pip install xlrd>=2.0.1`")
     st.stop()
 # Set page configuration (first Streamlit command)
-st.set_page_config(page_title="NYEL", layout="wide", page_icon="✨")
+st.set_page_config(page_title="MC4 AUTOMATIONS", layout="wide", page_icon="✨")
 # Initialize session state for page navigation
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
@@ -767,4 +767,5 @@ elif st.session_state.page == "PREDICTIVE MERGER":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         except Exception as e:
+
             st.error(f"Error creating merged file: {str(e)}")
