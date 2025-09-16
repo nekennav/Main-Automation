@@ -598,7 +598,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
                 "RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER",
                 "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON",
                 "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC", "LEPALCE",
-                "JQGAGAM", "SFIDOS", "ERDEGUZMAN"
+                "JQGAGAM", "ERDEGUZMAN"
             ], "SBF_PL"
         elif 'SBC_B4' in batch_numbers_str:
             return [
@@ -767,4 +767,5 @@ elif st.session_state.page == "PREDICTIVE MERGER":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         except Exception as e:
+
             st.error(f"Error creating merged file: {str(e)}")
