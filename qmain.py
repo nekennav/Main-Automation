@@ -129,7 +129,7 @@ h1 {
     color: #FFFFFF;
     margin-top: 40px;
     padding: 20px;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(31, 119, 180, 0.2);
     border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -175,12 +175,12 @@ h1 {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 .stTextArea textarea {
-    background-color: rgba(0, 0, 0, 0.7) !important;
+    background-color: rgba(31, 119, 180, 0.2) !important;
     color: #FFFFFF !important;
     border-radius: 8px;
 }
 .stDataFrame div {
-    background-color: rgba(0, 0, 0, 0.7) !important;
+    background-color: rgba(31, 119, 180, 0.2) !important;
 }
 .stDataFrame table,
 .stDataFrame th,
@@ -188,9 +188,12 @@ h1 {
     color: #FFFFFF !important;
 }
 .stInfo, .stSuccess, .stWarning, .stError {
-    background-color: rgba(0, 0, 0, 0.7) !important;
+    background-color: rgba(31, 119, 180, 0.2) !important;
     color: #FFFFFF !important;
     text-shadow: -1px -1px 0 #000000, 1px -1px 0 #000000, -1px 1px 0 #000000, 1px 1px 0 #000000;
+}
+.plotly .plotly-graph-div {
+    background-color: rgba(31, 119, 180, 0.2) !important;
 }
 .plotly .plotly-graph-div text,
 .plotly .plotly-graph-div tspan,
@@ -245,7 +248,7 @@ elif st.session_state.page == "SBC B2 REPORT":
     st.title("SBC B2 REPORT")
     # File uploader widget
     uploaded_files = st.file_uploader(
-        "NEKENNAV",
+        "Choose files to upload",
         accept_multiple_files=True,
         type=['txt', 'pdf', 'png', 'jpg', 'jpeg', 'csv', 'xlsx']
     )
@@ -450,7 +453,7 @@ elif st.session_state.page == "DRR BREAKDOWN":
                     text='Unique PTP Count'
                 )
                 fig_ptp.update_traces(textposition='inside', textfont=dict(size=12, color='white'))
-                fig_ptp.update_layout(showlegend=False, xaxis_title="Source", yaxis_title="Unique PTP Accounts", xaxis={'categoryorder': 'array', 'categoryarray': ptp_source_counts['Source'].tolist()}, paper_bgcolor='rgba(0,0,0,0.7)', plot_bgcolor='rgba(0,0,0,0.7)', font_color='#FFFFFF')
+                fig_ptp.update_layout(showlegend=False, xaxis_title="Source", yaxis_title="Unique PTP Accounts", xaxis={'categoryorder': 'array', 'categoryarray': ptp_source_counts['Source'].tolist()}, paper_bgcolor='rgba(31,119,180,0.2)', plot_bgcolor='rgba(31,119,180,0.2)', font_color='#FFFFFF')
                 st.plotly_chart(fig_ptp, use_container_width=True)
             else:
                 st.write("No PTP records or 'Remark Type' column missing.")
@@ -505,7 +508,7 @@ elif st.session_state.page == "DRR BREAKDOWN":
                     text='Unique RPC Count'
                 )
                 fig_rpc.update_traces(textposition='inside', textfont=dict(size=12, color='white'))
-                fig_rpc.update_layout(showlegend=False, xaxis_title="Source", yaxis_title="Unique RPC Accounts", xaxis={'categoryorder': 'array', 'categoryarray': rpc_source_counts['Source'].tolist()}, paper_bgcolor='rgba(0,0,0,0.7)', plot_bgcolor='rgba(0,0,0,0.7)', font_color='#FFFFFF')
+                fig_rpc.update_layout(showlegend=False, xaxis_title="Source", yaxis_title="Unique RPC Accounts", xaxis={'categoryorder': 'array', 'categoryarray': rpc_source_counts['Source'].tolist()}, paper_bgcolor='rgba(31,119,180,0.2)', plot_bgcolor='rgba(31,119,180,0.2)', font_color='#FFFFFF')
                 st.plotly_chart(fig_rpc, use_container_width=True)
             else:
                 st.write("No RPC records or 'Remark Type' column missing.")
@@ -553,7 +556,7 @@ elif st.session_state.page == "DRR BREAKDOWN":
                     text='Unique Claiming Paid Count'
                 )
                 fig_claiming_paid.update_traces(textposition='inside', textfont=dict(size=12, color='white'))
-                fig_claiming_paid.update_layout(showlegend=False, xaxis_title="Source", yaxis_title="Unique Claiming Paid Accounts", xaxis={'categoryorder': 'array', 'categoryarray': claiming_paid_source_counts['Source'].tolist()}, paper_bgcolor='rgba(0,0,0,0.7)', plot_bgcolor='rgba(0,0,0,0.7)', font_color='#FFFFFF')
+                fig_claiming_paid.update_layout(showlegend=False, xaxis_title="Source", yaxis_title="Unique Claiming Paid Accounts", xaxis={'categoryorder': 'array', 'categoryarray': claiming_paid_source_counts['Source'].tolist()}, paper_bgcolor='rgba(31,119,180,0.2)', plot_bgcolor='rgba(31,119,180,0.2)', font_color='#FFFFFF')
                 st.plotly_chart(fig_claiming_paid, use_container_width=True)
             else:
                 st.write("No Claiming Paid records or 'Remark Type' column missing.")
@@ -598,7 +601,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
                 "RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER",
                 "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON",
                 "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC", "LEPALCE",
-                "JQGAGAM", "ERDEGUZMAN"
+                "JQGAGAM", "SFIDOS", "ERDEGUZMAN"
             ], "SBF_PL"
         elif 'SBC_B4' in batch_numbers_str:
             return [
@@ -667,7 +670,9 @@ elif st.session_state.page == "MC4 RESHUFFLE":
                 return
             else:
                 result_df = reshuffle_collectors(accounts_df, collectors, campaign)
-                display_df = result_df
+                display_columns = ['Debtor ID', 'Name', 'Account No.', 'Batch No.', 'Collector']
+                available_columns = [col for col in display_columns if col in result_df.columns]
+                display_df = result_df[available_columns]
                 st.subheader(f"Reshuffled Account Assignments for {campaign}")
                 st.dataframe(display_df, use_container_width=True, hide_index=True)
                 current_date = datetime.now().strftime("%m%d%y")
@@ -691,7 +696,7 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         st.rerun()
     st.title("PREDICTIVE MERGER")
     uploaded_files = st.file_uploader(
-        "NEKENNAV",
+        "Choose Excel files to merge",
         type=["xls", "xlsx"],
         accept_multiple_files=True
     )
@@ -756,7 +761,7 @@ elif st.session_state.page == "PREDICTIVE MERGER":
                 try:
                     preview_df = pd.concat([df for _, df in preview_dataframes], ignore_index=True)
                     st.write("**Preview of Data in Merged File:**")
-                    st.dataframe(preview_df.head())
+                    st.dataframe(preview_df.head(), use_container_width=True)
                 except Exception as e:
                     st.error(f"Error generating preview: {str(e)}")
             output.seek(0)
@@ -767,5 +772,4 @@ elif st.session_state.page == "PREDICTIVE MERGER":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         except Exception as e:
-
             st.error(f"Error creating merged file: {str(e)}")
