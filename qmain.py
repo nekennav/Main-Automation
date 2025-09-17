@@ -19,21 +19,23 @@ st.set_page_config(page_title="NYEL", layout="wide", page_icon="✨")
 # Initialize session state for page navigation
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
-# CSS for consistent styling across pages with background image
+# CSS for consistent styling across pages with animated background
 st.markdown("""
 <style>
-/* Apply background image to the entire app */
-body {
-    background-image: url('https://images3.alphacoders.com/134/1342304.jpeg');
+/* Apply background image with vertical animation to the Streamlit app container */
+.stApp {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images3.alphacoders.com/134/1342304.jpeg');
     background-size: cover;
     background-position: center;
-    background-attachment: fixed;
     background-repeat: no-repeat;
+    background-color: #000000; /* Fallback color to prevent white blanks */
+    animation: panningBackground 20s linear infinite;
     color: #FFFFFF;
 }
-/* Semi-transparent overlay for readability */
-.stApp {
-    background: rgba(0, 0, 0, 0.6);
+@keyframes panningBackground {
+    0% { background-position: 50% 0%; }
+    50% { background-position: 50% 100%; }
+    100% { background-position: 50% 0%; }
 }
 /* Container with semi-transparent blue background */
 .container {
@@ -42,6 +44,8 @@ body {
     border-radius: 15px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
 }
 /* Enhanced text shadow for all text within container */
 .container * {
@@ -491,7 +495,7 @@ elif st.session_state.page == "DRR BREAKDOWN":
                 unique_rpc_count = 0
             st.write(f"**Total Unique RPC Accounts**: {unique_rpc_count}")
             if not rpc_statuses.empty and 'Remark Type' in df.columns:
-                rpc_statuses['Source'] = rpc_statuses['Remark Type'].apply(categorize_source)
+                ptp_statuses['Source'] = ptp_statuses['Remark Type'].apply(categorize_source)
                 rpc_source_counts = rpc_statuses.groupby('Source')['Debtor ID'].nunique().reset_index()
                 rpc_source_counts.columns = ['Source', 'Unique RPC Count']
                 rpc_source_counts = rpc_source_counts.sort_values(by='Unique RPC Count', ascending=False)
