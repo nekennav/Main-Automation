@@ -29,7 +29,7 @@ st.markdown("""
     background-position: center;
     background-repeat: no-repeat;
     background-color: #000000; /* Fallback color to prevent white blanks */
-    animation: panningBackground 50s linear infinite;
+    animation: panningBackground 60s linear infinite;
     color: #FFFFFF;
 }
 @keyframes panningBackground {
@@ -807,6 +807,7 @@ elif st.session_state.page == "PREDICTIVE MERGER":
             )
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
+
 
 
 
