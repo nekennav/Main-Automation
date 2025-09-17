@@ -7,6 +7,7 @@ from datetime import datetime
 import io
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, NamedStyle
+from openpyxl.utils import get_column_letter
 # Check for xlrd availability
 try:
     import xlrd
@@ -212,7 +213,7 @@ h2, h3, p, div, span, .stMetric, .stMetric * {
     color: #FFFFFF !important;
     text-shadow: -1px -1px 0 #000000, 1px -1px 0 #000000, -1px 1px 0 #000000, 1px 1px 0 #000000;
 }
-/* Ensure all markdown text (used by st.write) is white */
+/* Ensure all markdown text (used by st.markdown) is white */
 .stMarkdown, .stMarkdown *, .stMarkdown p, .stMarkdown div, .stMarkdown span {
     color: #FFFFFF !important;
     text-shadow: -1px -1px 0 #000000, 1px -1px 0 #000000, -1px 1px 0 #000000, 1px 1px 0 #000000;
@@ -573,7 +574,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
         st.session_state.page = 'home'
         st.rerun()
     st.title("MC4 RESHUFFLE")
-    @st.cache_data
+    @st.cache_resource
     def load_accounts(file):
         try:
             df = pd.read_excel(file)
@@ -581,13 +582,15 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             missing_columns = [col for col in required_columns if col not in df.columns]
             if missing_columns:
                 st.error(f"Excel file must contain these columns: {', '.join(missing_columns)}")
-                return None
+                return None, None
             if 'Collector' not in df.columns:
                 df['Collector'] = ''
-            return df
+            # Load workbook to preserve formatting
+            wb = pd.ExcelFile(file, engine='openpyxl').book
+            return df, wb
         except Exception as e:
             st.error(f"Error reading Excel file: {e}")
-            return None
+            return None, None
     def get_collectors(batch_numbers):
         batch_numbers_str = ' '.join(batch_numbers.astype(str).str.upper())
         if 'SALAD' in batch_numbers_str:
@@ -647,13 +650,42 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             for idx, collector in zip(shuffled.index, assignments):
                 shuffled.at[idx, 'Collector'] = collector
         return shuffled
+    def apply_excel_formatting(writer, df, wb):
+        worksheet = writer.sheets['Sheet1']
+        # Apply header formatting
+        header_fill = PatternFill(start_color='1F77B4', end_color='1F77B4', fill_type='solid')
+        header_font = Font(bold=True, color='FFFFFF')
+        for col_idx, column in enumerate(df.columns, 1):
+            cell = worksheet.cell(row=1, column=col_idx)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        # Copy column widths from original workbook
+        if wb and 'Sheet1' in wb.sheetnames:
+            ws = wb['Sheet1']
+            for col_idx, column in enumerate(df.columns, 1):
+                col_letter = get_column_letter(col_idx)
+                try:
+                    worksheet.column_dimensions[col_letter].width = ws.column_dimensions[col_letter].width or 15
+                except:
+                    worksheet.column_dimensions[col_letter].width = 15
+        # Apply text style to string columns
+        text_style = NamedStyle(name='text', number_format='@')
+        if 'text' not in writer.book.named_styles:
+            writer.book.add_named_style(text_style)
+        for col_idx, column in enumerate(df.columns, 1):
+            if df[column].dtype == 'object':
+                for row_idx in range(2, len(df) + 2):
+                    cell = worksheet.cell(row=row_idx, column=col_idx)
+                    cell.style = 'text'
     def main():
         uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx", "xls"])
         accounts_df = None
+        original_wb = None
         collectors = []
         campaign = None
         if uploaded_file is not None:
-            accounts_df = load_accounts(uploaded_file)
+            accounts_df, original_wb = load_accounts(uploaded_file)
             if accounts_df is not None:
                 collectors, campaign = get_collectors(accounts_df['Batch No.'])
                 if collectors:
@@ -670,16 +702,14 @@ elif st.session_state.page == "MC4 RESHUFFLE":
                 return
             else:
                 result_df = reshuffle_collectors(accounts_df, collectors, campaign)
-                display_columns = ['Debtor ID', 'Name', 'Account No.', 'Batch No.', 'Collector']
-                available_columns = [col for col in display_columns if col in result_df.columns]
-                display_df = result_df[available_columns]
                 st.subheader(f"Reshuffled Account Assignments for {campaign}")
-                st.dataframe(display_df, use_container_width=True, hide_index=True)
+                st.dataframe(result_df, use_container_width=True, hide_index=True)
                 current_date = datetime.now().strftime("%m%d%y")
                 campaign_filename = f"{campaign.replace(' ', '_')}_{current_date}_RESHUFFLE.xlsx"
                 output_buffer = io.BytesIO()
                 with pd.ExcelWriter(output_buffer, engine='openpyxl') as writer:
-                    display_df.to_excel(writer, index=False)
+                    result_df.to_excel(writer, index=False, sheet_name='Sheet1')
+                    apply_excel_formatting(writer, result_df, original_wb)
                 output_buffer.seek(0)
                 st.download_button(
                     label="Download Reshuffled Assignments",
