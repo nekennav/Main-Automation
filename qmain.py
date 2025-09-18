@@ -29,7 +29,7 @@ st.markdown("""
     background-position: center;
     background-repeat: no-repeat;
     background-color: #000000; /* Fallback color to prevent white blanks */
-    animation: panningBackground 60s linear infinite;
+    animation: panningBackground 30s linear infinite;
     color: #FFFFFF;
 }
 @keyframes panningBackground {
@@ -417,7 +417,7 @@ elif st.session_state.page == "DRR BREAKDOWN":
     uploaded_file = st.file_uploader("Choose an Excel file", type=["xls", "xlsx"], key="file_uploader")
     if uploaded_file is not None:
         try:
-            df = pd.read_excel(uploaded_file)
+            df = pd.read_excel(uploaded_file, engine='xlrd' if uploaded_file.name.endswith('.xls') else 'openpyxl')
             def categorize_source(remark_type):
                 if pd.isna(remark_type):
                     return "Unknown"
@@ -495,7 +495,7 @@ elif st.session_state.page == "DRR BREAKDOWN":
                 unique_rpc_count = 0
             st.write(f"**Total Unique RPC Accounts**: {unique_rpc_count}")
             if not rpc_statuses.empty and 'Remark Type' in df.columns:
-                ptp_statuses['Source'] = ptp_statuses['Remark Type'].apply(categorize_source)
+                rpc_statuses['Source'] = rpc_statuses['Remark Type'].apply(categorize_source)
                 rpc_source_counts = rpc_statuses.groupby('Source')['Debtor ID'].nunique().reset_index()
                 rpc_source_counts.columns = ['Source', 'Unique RPC Count']
                 rpc_source_counts = rpc_source_counts.sort_values(by='Unique RPC Count', ascending=False)
@@ -807,7 +807,3 @@ elif st.session_state.page == "PREDICTIVE MERGER":
             )
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
-
-
-
-
