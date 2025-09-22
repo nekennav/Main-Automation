@@ -601,7 +601,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             return [
                 "EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON",
                 "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ",
-                "DPVENIEGAS", "JDAMPONG", "MRFUTALAN"
+                "DPVENIEGAS", "JDAMPONG"
             ], "SBF_SALAD"
         elif 'SBF_PL' in batch_numbers_str or 'SBF_LEGACY' in batch_numbers_str:
             return [
@@ -807,3 +807,4 @@ elif st.session_state.page == "PREDICTIVE MERGER":
             )
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
+
