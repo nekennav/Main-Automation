@@ -671,30 +671,66 @@ elif st.session_state.page == "MC4 RESHUFFLE":
                 num_accounts = len(cycle_accounts)
                 num_collectors = len(collectors)
                 if num_accounts > 0 and num_collectors > 0:
-                    accounts_per_collector = num_accounts // num_collectors
-                    extra_accounts = num_accounts % num_collectors
+                    # Calculate equal distribution: base + extras to first few collectors
+                    base_accounts = num_accounts // num_collectors
+                    remainder = num_accounts % num_collectors
+                    # Create assignment counts for each collector
+                    assignment_counts = [base_accounts + 1 for _ in range(remainder)] + [base_accounts for _ in range(num_collectors - remainder)]
+                    
+                    # Create the assignments list with exact counts
                     assignments = []
-                    for collector in collectors:
-                        count = accounts_per_collector + (1 if extra_accounts > 0 else 0)
-                        assignments.extend([collector] * count)
-                        if extra_accounts > 0:
-                            extra_accounts -= 1
+                    for i, collector in enumerate(collectors):
+                        assignments.extend([collector] * assignment_counts[i])
+                    
+                    # Shuffle the assignments to randomize
                     random.shuffle(assignments)
+                    
+                    # Get the indices of cycle accounts and shuffle them too for fair distribution
+                    account_indices = list(cycle_accounts.index)
+                    random.shuffle(account_indices)
+                    
+                    # Now, to avoid assigning the same collector if possible, we'll try to match
+                    # but preserve the exact counts per collector
                     original_collectors = cycle_accounts['Collector'].copy()
-                    for i, idx in enumerate(cycle_accounts.index):
-                        original_collector = original_collectors.loc[idx]
-                        assigned_collector = assignments[i]
-                        if original_collector and assigned_collector == original_collector:
-                            available_collectors = [c for c in collectors if c != original_collector]
-                            if available_collectors:
-                                for j in range(len(assignments)):
-                                    if assignments[j] in available_collectors and assignments[j] != original_collectors.loc[cycle_accounts.index[j]]:
-                                        assignments[i], assignments[j] = assignments[j], assignments[i]
-                                        break
-                                else:
-                                    assignments[i] = random.choice(available_collectors)
-                    for idx, collector in zip(cycle_accounts.index, assignments):
-                        shuffled.at[idx, 'Collector'] = collector
+                    
+                    # Create a mapping of available slots per collector
+                    collector_slots = {collector: list(range(len(assignments))) for collector in collectors}
+                    for i, assignment in enumerate(assignments):
+                        collector_slots[assignment].append(i)
+                    
+                    assigned_slots = {collector: [] for collector in collectors}
+                    
+                    # Assign accounts to collectors while trying to avoid original
+                    for account_idx in account_indices:
+                        original_collector = original_collectors.loc[account_idx]
+                        
+                        # Find a suitable collector (prefer not original, and one with remaining slots)
+                        possible_collectors = []
+                        for collector in collectors:
+                            if collector != original_collector and len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
+                                possible_collectors.append(collector)
+                        
+                        if not possible_collectors:
+                            # If no alternatives, use any collector with slots
+                            possible_collectors = [c for c in collectors if len(assigned_slots[c]) < assignment_counts[collectors.index(c)]]
+                        
+                        if possible_collectors:
+                            # Choose the one with fewest assignments so far (for balance, though counts are fixed)
+                            selected_collector = min(possible_collectors, key=lambda c: len(assigned_slots[c]))
+                            # Assign
+                            slot_index = collector_slots[selected_collector].pop(0)
+                            assignments[slot_index] = selected_collector
+                            assigned_slots[selected_collector].append(account_idx)
+                            shuffled.at[account_idx, 'Collector'] = selected_collector
+                        else:
+                            # Fallback: assign arbitrarily while maintaining counts
+                            for collector in collectors:
+                                if len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
+                                    slot_index = collector_slots[collector].pop(0)
+                                    assignments[slot_index] = collector
+                                    assigned_slots[collector].append(account_idx)
+                                    shuffled.at[account_idx, 'Collector'] = collector
+                                    break
         else:
             collectors = cycle_map_or_collectors
             if not collectors:
@@ -702,30 +738,53 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             num_accounts = len(shuffled)
             num_collectors = len(collectors)
             if num_accounts > 0 and num_collectors > 0:
-                accounts_per_collector = num_accounts // num_collectors
-                extra_accounts = num_accounts % num_collectors
+                # Calculate equal distribution for non-SBC_B2 campaigns
+                base_accounts = num_accounts // num_collectors
+                remainder = num_accounts % num_collectors
+                assignment_counts = [base_accounts + 1 for _ in range(remainder)] + [base_accounts for _ in range(num_collectors - remainder)]
+                
+                # Create assignments
                 assignments = []
-                for collector in collectors:
-                    count = accounts_per_collector + (1 if extra_accounts > 0 else 0)
-                    assignments.extend([collector] * count)
-                    if extra_accounts > 0:
-                        extra_accounts -= 1
+                for i, collector in enumerate(collectors):
+                    assignments.extend([collector] * assignment_counts[i])
+                
                 random.shuffle(assignments)
+                
+                # Shuffle indices
+                account_indices = list(shuffled.index)
+                random.shuffle(account_indices)
+                
+                # Avoid original where possible, preserving counts
                 original_collectors = shuffled['Collector'].copy()
-                for i, idx in enumerate(shuffled.index):
-                    original_collector = original_collectors.loc[idx]
-                    assigned_collector = assignments[i]
-                    if original_collector and assigned_collector == original_collector:
-                        available_collectors = [c for c in collectors if c != original_collector]
-                        if available_collectors:
-                            for j in range(len(assignments)):
-                                if assignments[j] in available_collectors and assignments[j] != original_collectors.loc[shuffled.index[j]]:
-                                    assignments[i], assignments[j] = assignments[j], assignments[i]
-                                    break
-                            else:
-                                assignments[i] = random.choice(available_collectors)
-                for idx, collector in zip(shuffled.index, assignments):
-                    shuffled.at[idx, 'Collector'] = collector
+                collector_slots = {collector: list(range(len(assignments))) for collector in collectors}
+                assigned_slots = {collector: [] for collector in collectors}
+                
+                for account_idx in account_indices:
+                    original_collector = original_collectors.loc[account_idx]
+                    
+                    possible_collectors = []
+                    for collector in collectors:
+                        if collector != original_collector and len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
+                            possible_collectors.append(collector)
+                    
+                    if not possible_collectors:
+                        possible_collectors = [c for c in collectors if len(assigned_slots[c]) < assignment_counts[collectors.index(c)]]
+                    
+                    if possible_collectors:
+                        selected_collector = min(possible_collectors, key=lambda c: len(assigned_slots[c]))
+                        slot_index = collector_slots[selected_collector].pop(0)
+                        assignments[slot_index] = selected_collector
+                        assigned_slots[selected_collector].append(account_idx)
+                        shuffled.at[account_idx, 'Collector'] = selected_collector
+                    else:
+                        # Fallback
+                        for collector in collectors:
+                            if len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
+                                slot_index = collector_slots[collector].pop(0)
+                                assignments[slot_index] = collector
+                                assigned_slots[collector].append(account_idx)
+                                shuffled.at[account_idx, 'Collector'] = collector
+                                break
         return shuffled
     def apply_excel_formatting(writer, df, wb):
         worksheet = writer.sheets['Sheet1']
