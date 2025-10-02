@@ -631,7 +631,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             ], "SBF_PL", None
         elif 'SBC_B4' in batch_numbers_str:
             return [
-                "PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "RCFANUNCIANO",
+                "PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "VMGORDON", "RCFANUNCIANO",
                 "CPPERFAS", "BCBATAC"
             ], "SBC_B4", None
         elif 'SBC_B2' in batch_numbers_str:
@@ -947,5 +947,6 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
