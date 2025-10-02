@@ -297,21 +297,21 @@ elif st.session_state.page == "SBC B2 REPORT":
                 return {"Error": "No Account No. column", "PTP Data": None}
             if 'Status' not in df.columns:
                 return {"Error": "No Status column", "PTP Data": None}
-          
+         
             df['Remark Type'] = df['Remark Type'].str.title()
             df['Status'] = df['Status'].str.title()
-          
+         
             df_ptp = df[df['Status'].isin([s.title() for s in PTP_STATUSES])]
             df_ptp = df_ptp[df_ptp['Remark Type'].isin(['Predictive'] + MANUAL_PTP_TYPES)]
             df_unique = df_ptp.drop_duplicates(subset=['Account No.'], keep='first')
             df_unique['Account Type'] = df_unique['Account No.'].apply(get_account_type)
-          
+         
             predictive_count = len(df_unique[df_unique['Remark Type'] == 'Predictive'])
             manual_count = len(df_unique[df_unique['Remark Type'].isin(MANUAL_PTP_TYPES)])
             cards_count = len(df_unique[(df_unique['Account Type'] == 'Cards') & (df_unique['Remark Type'] == 'Predictive')])
             bel_count = len(df_unique[(df_unique['Account Type'] == 'BEL') & (df_unique['Remark Type'] == 'Predictive')])
             total_count = len(df_unique)
-          
+         
             df_manual_calls = df[
                 (df['Remark Type'] == 'Outgoing') &
                 (df['Status'].str.contains('OUTGOING CALL -', case=False, na=False))
@@ -319,7 +319,7 @@ elif st.session_state.page == "SBC B2 REPORT":
             manual_call_unique_count = len(df_manual_calls['Account No.'].drop_duplicates())
             total_manual_calls = len(df_manual_calls)
             avg_manual_calls = total_manual_calls / manual_call_unique_count if manual_call_unique_count > 0 else 0
-          
+         
             return {
                 'Predictive': predictive_count,
                 'Manual': manual_count,
@@ -437,7 +437,7 @@ elif st.session_state.page == "DRR BREAKDOWN":
                 elif remark_type in ["sms", "follow up", "email", "outgoing"]:
                     return "SMS" if remark_type == "sms" else "Manual"
                 return "Other"
-          
+         
             st.subheader("PTP Analysis")
             ptp_statuses = df[
                 (df['Status'].str.contains('PTP', case=False, na=False)) &
@@ -472,7 +472,7 @@ elif st.session_state.page == "DRR BREAKDOWN":
                 st.plotly_chart(fig_ptp, use_container_width=True)
             else:
                 st.write("No PTP records or 'Remark Type' column missing.")
-          
+         
             st.subheader("RPC Analysis")
             rpc_statuses_list = [
                 'OUTBOUND CALLING - REFUSE TO PAY', 'OUTBOUND CALLING - RETURN CALL',
@@ -527,7 +527,7 @@ elif st.session_state.page == "DRR BREAKDOWN":
                 st.plotly_chart(fig_rpc, use_container_width=True)
             else:
                 st.write("No RPC records or 'Remark Type' column missing.")
-          
+         
             st.subheader("Claiming Paid Analysis")
             claiming_paid_statuses_list = [
                 'INBOUND CALLS - CONFIRMED PAYMENT', 'NEGATIVE - CALL_MOVED OUT_CONFIRMED CLIENT NLR',
@@ -575,7 +575,7 @@ elif st.session_state.page == "DRR BREAKDOWN":
                 st.plotly_chart(fig_claiming_paid, use_container_width=True)
             else:
                 st.write("No Claiming Paid records or 'Remark Type' column missing.")
-          
+         
             st.subheader("Summary of Totals")
             st.write(f"**Total Unique PTP Accounts**: {unique_ptp_count}")
             st.write(f"**Total Unique RPC Accounts**: {unique_rpc_count}")
@@ -608,46 +608,76 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             st.error(f"Error reading Excel file: {e}")
             return None, None
     def get_collectors(batch_numbers, df):
-        batch_numbers_str = ' '.join(batch_numbers.astype(str).str.upper())
-        cycle_collectors = {
-            (14, 17, 24, 16, 22): ["BNOSIA", "JABIOG", "JELGARCIA", "MADANTAYANA", "LEALCANTARA"],
-            (2, 5, 28, 19): ["RMGALSIM", "CHCALFOFORO", "LCSERVALLOS", "MGMADAYAG", "EMELENDEZ"],
-            (3, 6, 9, 10, 11, 12, 13, 15, 18, 20, 23, 25, 26, 27, 30, 31, 29): [
-                "EECRUZ", "KAPILAPIL", "RJRAZON", "NVMAMIGO", "MGARBAS", "JBASOY", "ADSARMIENTO"
-            ]
-        }
-        if 'SALAD' in batch_numbers_str:
-            return [
-                "EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON",
-                "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ",
-                "DPVENIEGAS", "JDAMPONG"
-            ], "SBF_SALAD", None
-        elif 'SBF_PL' in batch_numbers_str or 'SBF_LEGACY' in batch_numbers_str:
-            return [
-                "RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER",
-                "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON",
-                "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC", "LEPALCE",
-                "JQGAGAM", "ERDEGUZMAN"
-            ], "SBF_PL", None
-        elif 'SBC_B4' in batch_numbers_str:
-            return [
-                "PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "VMGORDON", "RCFANUNCIANO",
-                "CPPERFAS", "BCBATAC"
-            ], "SBC_B4", None
-        elif 'SBC_B2' in batch_numbers_str:
-            # Combine all collectors for SBC_B2 to display in preview
-            all_collectors = list(set(
-                cycle_collectors[(14, 17, 24, 16, 22)] +
-                cycle_collectors[(2, 5, 28, 19)] +
-                cycle_collectors[(3, 6, 9, 10, 11, 12, 13, 15, 18, 20, 23, 25, 26, 27, 30, 31, 29)]
-            ))
-            # Map cycles to collectors for assignment
-            cycle_map = {}
-            for cycle_group, collectors in cycle_collectors.items():
-                for cycle in cycle_group:
-                    cycle_map[cycle] = collectors
-            return cycle_map, "SBC_B2", None, all_collectors
-        return {}, None, None, []
+        # Initialize default return values
+        cycle_map = {}
+        campaign = None
+        all_collectors = []
+
+        # Check if batch_numbers is valid
+        if batch_numbers is None or batch_numbers.isna().all():
+            st.error("The 'Batch No.' column contains no valid data.")
+            return cycle_map, campaign, None, all_collectors
+
+        try:
+            # Convert batch_numbers to strings, handling NaN and non-string values
+            batch_numbers_clean = batch_numbers.fillna('').astype(str).str.strip().str.upper()
+            batch_numbers_str = ' '.join(batch_numbers_clean)
+
+            # Define cycle-to-collector mapping for SBC_B2
+            cycle_collectors = {
+                (14, 17, 24, 16, 22): ["BNOSIA", "JABIOG", "JELGARCIA", "MADANTAYANA", "LEALCANTARA"],
+                (2, 5, 28, 19): ["RMGALSIM", "CHCALFOFORO", "LCSERVALLOS", "MGMADAYAG", "EMELENDEZ"],
+                (3, 6, 9, 10, 11, 12, 13, 15, 18, 20, 23, 25, 26, 27, 30, 31, 29): [
+                    "EECRUZ", "KAPILAPIL", "RJRAZON", "NVMAMIGO", "MGARBAS", "JBASOY", "ADSARMIENTO"
+                ]
+            }
+
+            # Check for specific campaigns in batch_numbers_str
+            if 'SALAD' in batch_numbers_str:
+                campaign = "SBF_SALAD"
+                collectors = [
+                    "EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON",
+                    "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ",
+                    "DPVENIEGAS", "JDAMPONG"
+                ]
+                return collectors, campaign, None, collectors
+            elif 'SBF_PL' in batch_numbers_str or 'SBF_LEGACY' in batch_numbers_str:
+                campaign = "SBF_PL"
+                collectors = [
+                    "RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER",
+                    "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON",
+                    "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC", "LEPALCE",
+                    "JQGAGAM", "ERDEGUZMAN"
+                ]
+                return collectors, campaign, None, collectors
+            elif 'SBC_B4' in batch_numbers_str:
+                campaign = "SBC_B4"
+                collectors = [
+                    "PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "VMGORDON", "RCFANUNCIANO",
+                    "CPPERFAS", "BCBATAC"
+                ]
+                return collectors, campaign, None, collectors
+            elif 'SBC_B2' in batch_numbers_str:
+                campaign = "SBC_B2"
+                # Combine all collectors for SBC_B2
+                all_collectors = list(set(
+                    cycle_collectors[(14, 17, 24, 16, 22)] +
+                    cycle_collectors[(2, 5, 28, 19)] +
+                    cycle_collectors[(3, 6, 9, 10, 11, 12, 13, 15, 18, 20, 23, 25, 26, 27, 30, 31, 29)]
+                ))
+                # Map cycles to collectors
+                cycle_map = {}
+                for cycle_group, collectors in cycle_collectors.items():
+                    for cycle in cycle_group:
+                        cycle_map[cycle] = collectors
+                return cycle_map, campaign, None, all_collectors
+            else:
+                st.error("No valid campaign found in 'Batch No.' column. Expected values: 'SBF_SALAD', 'SBF_PL', 'SBF_LEGACY', 'SBC_B4', or 'SBC_B2'.")
+                return cycle_map, campaign, None, all_collectors
+
+        except Exception as e:
+            st.error(f"Error processing 'Batch No.' column: {str(e)}")
+            return cycle_map, campaign, None, all_collectors
     def reshuffle_collectors(accounts, cycle_map_or_collectors, campaign):
         shuffled = accounts.copy()
         if campaign == "SBC_B2":
@@ -676,44 +706,44 @@ elif st.session_state.page == "MC4 RESHUFFLE":
                     remainder = num_accounts % num_collectors
                     # Create assignment counts for each collector
                     assignment_counts = [base_accounts + 1 for _ in range(remainder)] + [base_accounts for _ in range(num_collectors - remainder)]
-                    
+                   
                     # Create the assignments list with exact counts
                     assignments = []
                     for i, collector in enumerate(collectors):
                         assignments.extend([collector] * assignment_counts[i])
-                    
+                   
                     # Shuffle the assignments to randomize
                     random.shuffle(assignments)
-                    
+                   
                     # Get the indices of cycle accounts and shuffle them too for fair distribution
                     account_indices = list(cycle_accounts.index)
                     random.shuffle(account_indices)
-                    
+                   
                     # Now, to avoid assigning the same collector if possible, we'll try to match
                     # but preserve the exact counts per collector
                     original_collectors = cycle_accounts['Collector'].copy()
-                    
+                   
                     # Create a mapping of available slots per collector
                     collector_slots = {collector: list(range(len(assignments))) for collector in collectors}
                     for i, assignment in enumerate(assignments):
                         collector_slots[assignment].append(i)
-                    
+                   
                     assigned_slots = {collector: [] for collector in collectors}
-                    
+                   
                     # Assign accounts to collectors while trying to avoid original
                     for account_idx in account_indices:
                         original_collector = original_collectors.loc[account_idx]
-                        
+                       
                         # Find a suitable collector (prefer not original, and one with remaining slots)
                         possible_collectors = []
                         for collector in collectors:
                             if collector != original_collector and len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
                                 possible_collectors.append(collector)
-                        
+                       
                         if not possible_collectors:
                             # If no alternatives, use any collector with slots
                             possible_collectors = [c for c in collectors if len(assigned_slots[c]) < assignment_counts[collectors.index(c)]]
-                        
+                       
                         if possible_collectors:
                             # Choose the one with fewest assignments so far (for balance, though counts are fixed)
                             selected_collector = min(possible_collectors, key=lambda c: len(assigned_slots[c]))
@@ -742,34 +772,34 @@ elif st.session_state.page == "MC4 RESHUFFLE":
                 base_accounts = num_accounts // num_collectors
                 remainder = num_accounts % num_collectors
                 assignment_counts = [base_accounts + 1 for _ in range(remainder)] + [base_accounts for _ in range(num_collectors - remainder)]
-                
+               
                 # Create assignments
                 assignments = []
                 for i, collector in enumerate(collectors):
                     assignments.extend([collector] * assignment_counts[i])
-                
+               
                 random.shuffle(assignments)
-                
+               
                 # Shuffle indices
                 account_indices = list(shuffled.index)
                 random.shuffle(account_indices)
-                
+               
                 # Avoid original where possible, preserving counts
                 original_collectors = shuffled['Collector'].copy()
                 collector_slots = {collector: list(range(len(assignments))) for collector in collectors}
                 assigned_slots = {collector: [] for collector in collectors}
-                
+               
                 for account_idx in account_indices:
                     original_collector = original_collectors.loc[account_idx]
-                    
+                   
                     possible_collectors = []
                     for collector in collectors:
                         if collector != original_collector and len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
                             possible_collectors.append(collector)
-                    
+                   
                     if not possible_collectors:
                         possible_collectors = [c for c in collectors if len(assigned_slots[c]) < assignment_counts[collectors.index(c)]]
-                    
+                   
                     if possible_collectors:
                         selected_collector = min(possible_collectors, key=lambda c: len(assigned_slots[c]))
                         slot_index = collector_slots[selected_collector].pop(0)
@@ -818,31 +848,42 @@ elif st.session_state.page == "MC4 RESHUFFLE":
         uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx", "xls"])
         accounts_df = None
         original_wb = None
-        collectors = []
+        cycle_map = {}
         campaign = None
         all_collectors = []
+
         if uploaded_file is not None:
             accounts_df, original_wb = load_accounts(uploaded_file)
             if accounts_df is not None:
+                if 'Batch No.' not in accounts_df.columns:
+                    st.error("The uploaded Excel file must contain a 'Batch No.' column.")
+                    return
+                # Check if 'Batch No.' has any non-empty values
+                if accounts_df['Batch No.'].isna().all() or accounts_df['Batch No.'].str.strip().eq('').all():
+                    st.error("The 'Batch No.' column is empty or contains only invalid values.")
+                    return
+                # Debugging: Display unique Batch No. values
+                st.write("Unique Batch Numbers:", accounts_df['Batch No.'].unique().tolist())
                 cycle_map, campaign, _, all_collectors = get_collectors(accounts_df['Batch No.'], accounts_df)
                 if campaign == "SBC_B2" and all_collectors:
                     st.write(f"**Campaign: {campaign}**")
                     st.write(f"Collectors Assigned for SBC_B2: {', '.join(sorted(all_collectors))}")
-                elif cycle_map or collectors:
-                    collectors = cycle_map
+                elif cycle_map or all_collectors:
                     st.write(f"**Campaign: {campaign}**")
-                    st.write(f"Collectors Assigned: {', '.join(sorted(collectors))}")
+                    st.write(f"Collectors Assigned: {', '.join(sorted(all_collectors))}")
                 else:
-                    st.error("No collectors available. Ensure Batch No. contains 'SBF_SALAD', 'SBF_PL', 'SBC_B4', or 'SBC_B2' with a valid cycle.")
+                    st.error("No collectors available. Ensure 'Batch No.' contains 'SBF_SALAD', 'SBF_PL', 'SBC_B4', or 'SBC_B2' with a valid cycle.")
+                    return
+
         if st.button("Reshuffle Collectors"):
             if accounts_df is None:
                 st.error("Please upload a valid Excel file with 'Debtor ID', 'Name', 'Batch No.', 'Account No.', and 'Cycle' columns.")
                 return
-            elif not (cycle_map or collectors) or not campaign:
-                st.error("No collectors available. Ensure Batch No. contains 'SBF_SALAD', 'SBF_PL', 'SBC_B4', or 'SBC_B2' and a valid cycle is present.")
+            elif not (cycle_map or all_collectors) or not campaign:
+                st.error("No collectors available. Ensure 'Batch No.' contains 'SBF_SALAD', 'SBF_PL', 'SBC_B4', or 'SBC_B2' and a valid cycle is present.")
                 return
             else:
-                result_df = reshuffle_collectors(accounts_df, cycle_map if campaign == "SBC_B2" else collectors, campaign)
+                result_df = reshuffle_collectors(accounts_df, cycle_map if campaign == "SBC_B2" else all_collectors, campaign)
                 st.subheader(f"Reshuffled Account Assignments for {campaign}")
                 st.dataframe(result_df, use_container_width=True, hide_index=True)
                 current_date = datetime.now().strftime("%m%d%y")
@@ -947,6 +988,3 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
-
-
-
