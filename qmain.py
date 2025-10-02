@@ -617,23 +617,11 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             ]
         }
         if 'SALAD' in batch_numbers_str:
-            return [
-                "EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON",
-                "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ",
-                "DPVENIEGAS", "JDAMPONG"
-            ], "SBF_SALAD", None
+            return ["EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON", "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ", "DPVENIEGAS", "JDAMPONG"], "SBF_SALAD", None, []
         elif 'SBF_PL' in batch_numbers_str or 'SBF_LEGACY' in batch_numbers_str:
-            return [
-                "RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER",
-                "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON",
-                "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC", "LEPALCE",
-                "JQGAGAM", "ERDEGUZMAN"
-            ], "SBF_PL", None
+            return ["RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER", "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON", "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC", "LEPALCE", "JQGAGAM", "ERDEGUZMAN"], "SBF_PL", None, []
         elif 'SBC_B4' in batch_numbers_str:
-            return [
-                "PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "VMGORDON", "RCFANUNCIANO",
-                "CPPERFAS", "BCBATAC"
-            ], "SBC_B4", None
+            return ["PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "VMGORDON", "RCFANUNCIANO", "CPPERFAS", "BCBATAC"], "SBC_B4", None, []
         elif 'SBC_B2' in batch_numbers_str:
             # Combine all collectors for SBC_B2 to display in preview
             all_collectors = list(set(
@@ -647,7 +635,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
                 for cycle in cycle_group:
                     cycle_map[cycle] = collectors
             return cycle_map, "SBC_B2", None, all_collectors
-        return {}, None, None
+        return {}, None, None, []
     def reshuffle_collectors(accounts, cycle_map_or_collectors, campaign):
         shuffled = accounts.copy()
         if campaign == "SBC_B2":
