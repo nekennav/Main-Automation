@@ -17,7 +17,7 @@ except ImportError:
     st.stop()
 
 # Set page configuration (first Streamlit command)
-st.set_page_config(page_title="NYEL", layout="wide", page_icon="✨")
+st.set_page_config(page_title="NYEL", layout="wide", page_icon="💻")
 
 # Initialize session state for page navigation
 if 'page' not in st.session_state:
@@ -935,6 +935,7 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
