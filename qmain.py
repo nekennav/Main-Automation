@@ -610,11 +610,11 @@ elif st.session_state.page == "MC4 RESHUFFLE":
     def get_collectors(batch_numbers, df):
         batch_numbers_str = ' '.join(batch_numbers.astype(str).str.upper())
         cycle_collectors = {
-            (14, 17, 24): ["BNOSIA", "JABIOG", "JELGARCIA", "MADANTAYANA", "NSINADJAN", "LEALCANTARA"],
-            (2, 5, 28): ["RMGALSIM", "CHCALFOFORO", "LCSERVALLOS", "MGMADAYAG", "RMELENDEZ"],
-            (3, 6, 9, 10, 11, 12, 13, 15, 18, 20, 23, 25, 26, 27, 30, 31, 29): [
-                "EECRUZ", "KAPILAPIL", "RJRAZON", "NVMAMIGO", "MGARBAS", "JBASOY", "ADSARMIENTO"
-            ]
+            (5,): ["KMCRISOSTOMO", "BNOSIA", "RJRAZON", "MADANTAYANA", "NSINADJAN"],
+            (12,): ["LAATON", "CHCALFOFORO", "JABIOG", "LEALCANTARA", "EMELENDEZ"],
+            (17,): ["ADSARMIENTO", "RMGALSIM", "MGMADAYAG", "JBASOY"],
+            (24,): ["NVMAMIGO", "LCSERVALLOS", "JELGARCIA", "JDDAGANIO"],
+            (2, 9, 14, 20, 27): ["KAPILAPIL", "EECRUZ", "MGARBAS"]
         }
         if 'SALAD' in batch_numbers_str:
             return ["EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON", "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ", "DPVENIEGAS", "JDAMPONG"], "SBF_SALAD", None, []
@@ -625,9 +625,11 @@ elif st.session_state.page == "MC4 RESHUFFLE":
         elif 'SBC_B2' in batch_numbers_str:
             # Combine all collectors for SBC_B2 to display in preview
             all_collectors = list(set(
-                cycle_collectors[(14, 17, 24)] +
-                cycle_collectors[(2, 5, 28)] +
-                cycle_collectors[(3, 6, 9, 10, 11, 12, 13, 15, 18, 20, 23, 25, 26, 27, 30, 31, 29)]
+                cycle_collectors[(5,)] +
+                cycle_collectors[(12,)] +
+                cycle_collectors[(17,)] +
+                cycle_collectors[(24,)] +
+                cycle_collectors[(2, 9, 14, 20, 27)]
             ))
             # Map cycles to collectors for assignment
             cycle_map = {}
@@ -935,7 +937,3 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
-
-
-
-
