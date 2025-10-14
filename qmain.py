@@ -610,11 +610,11 @@ elif st.session_state.page == "MC4 RESHUFFLE":
     def get_collectors(batch_numbers, df):
         batch_numbers_str = ' '.join(batch_numbers.astype(str).str.upper())
         cycle_collectors = {
-            (5,): ["BNOSIA", "JABIOG", "RJRAZON", "MADANTAYANA", "NSINADJAN"],
-            (12,): ["RMGALSIM", "CHCALFOFORO", "LAATON", "RMELENDEZ"],
-            (17,): ["ADSARMIENTO", "KMCRISOSTOMO", "MGMADAYAG", "JBASOY"],
-            (24,): ["NVMAMIGO", "LCSERVALLOS", "JELGARCIA", "JDDAGANIO"],
-            (2, 9, 14, 20, 27): ["KAPILAPIL", "EECRUZ", "MGARBAS", "LEALCANTARA"]
+            (5,): ["JABIOG", "RJRAZON", "MADANTAYANA", "NSINADJAN", "JOSINSAO"],
+            (12,): ["CHCALFOFORO", "LAATON", "RMELENDEZ", "NNAVARROSA"],
+            (17,): ["JBONDOC", "KMCRISOSTOMO", "MGMADAYAG", "JBASOY"],
+            (24,): ["LCSERVALLOS", "JELGARCIA", "JDDAGANIO", "HALIP"],
+            (2, 9, 14, 20, 27): ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"]
         }
         if 'SALAD' in batch_numbers_str:
             return ["EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON", "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ", "DPVENIEGAS", "JDAMPONG"], "SBF_SALAD", None, []
@@ -937,6 +937,7 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
