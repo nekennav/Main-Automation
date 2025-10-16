@@ -636,17 +636,78 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             for cycle_group, collectors in cycle_collectors.items():
                 for cycle in cycle_group:
                     cycle_map[cycle] = collectors
-            return cycle_map, "SBC_B2", None, all_collectors
+            return cycle_map, "SBC_B2", all_collectors, all_collectors
         return {}, None, None, []
-    def reshuffle_collectors(accounts, cycle_map_or_collectors, campaign):
+    def reshuffle_collectors(accounts, cycle_map_or_collectors, campaign, all_collectors_b2):
+        import random
         shuffled = accounts.copy()
         if campaign == "SBC_B2":
             cycle_map = cycle_map_or_collectors
-            # Get unique cycles in the data
-            all_cycles = set(shuffled['Cycle'].dropna().astype(int).unique())
+            # Get unique cycles in the data (handle NaN)
+            data_cycles = shuffled['Cycle'].dropna()
+            data_cycles = pd.to_numeric(data_cycles, errors='coerce')
+            data_cycles = data_cycles.dropna().astype(int)
+            all_cycles = set(data_cycles.unique())
             specified_cycles = set(cycle_map.keys())
+            
+            # Handle cycles not in the map: reshuffle among all B2 collectors
+            invalid_cycles = all_cycles - specified_cycles
+            if invalid_cycles:
+                collectors = all_collectors_b2
+                if collectors:
+                    invalid_accounts_mask = shuffled['Cycle'].isin(invalid_cycles) | (~shuffled['Cycle'].isin(specified_cycles))
+                    invalid_accounts = shuffled[invalid_accounts_mask]
+                    if not invalid_accounts.empty:
+                        # Use the generic reshuffle logic (adapted from else branch)
+                        num_accounts = len(invalid_accounts)
+                        num_collectors = len(collectors)
+                        if num_accounts > 0 and num_collectors > 0:
+                            base_accounts = num_accounts // num_collectors
+                            remainder = num_accounts % num_collectors
+                            assignment_counts = [base_accounts + 1 for _ in range(remainder)] + [base_accounts for _ in range(num_collectors - remainder)]
+                            
+                            assignments = []
+                            for i, collector in enumerate(collectors):
+                                assignments.extend([collector] * assignment_counts[i])
+                            
+                            random.shuffle(assignments)
+                            
+                            account_indices = list(invalid_accounts.index)
+                            random.shuffle(account_indices)
+                            
+                            original_collectors = invalid_accounts['Collector'].copy()
+                            collector_slots = {collector: list(range(len(assignments))) for collector in collectors}
+                            assigned_slots = {collector: [] for collector in collectors}
+                            
+                            for account_idx in account_indices:
+                                original_collector = original_collectors.loc[account_idx]
+                                
+                                possible_collectors = []
+                                for collector in collectors:
+                                    if collector != original_collector and len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
+                                        possible_collectors.append(collector)
+                                
+                                if not possible_collectors:
+                                    possible_collectors = [c for c in collectors if len(assigned_slots[c]) < assignment_counts[collectors.index(c)]]
+                                
+                                if possible_collectors:
+                                    selected_collector = min(possible_collectors, key=lambda c: len(assigned_slots[c]))
+                                    slot_index = collector_slots[selected_collector].pop(0)
+                                    assignments[slot_index] = selected_collector
+                                    assigned_slots[selected_collector].append(account_idx)
+                                    shuffled.at[account_idx, 'Collector'] = selected_collector
+                                else:
+                                    for collector in collectors:
+                                        if len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
+                                            slot_index = collector_slots[collector].pop(0)
+                                            assignments[slot_index] = collector
+                                            assigned_slots[collector].append(account_idx)
+                                            shuffled.at[account_idx, 'Collector'] = collector
+                                            break
+            
+            # Now handle valid cycles as before
             valid_cycles = all_cycles.intersection(specified_cycles)
-            if not valid_cycles:
+            if not valid_cycles and not invalid_cycles:
                 st.error(f"No valid cycles found in the uploaded file. Valid cycles are: {', '.join(map(str, sorted(specified_cycles)))}")
                 return shuffled
             for cycle in valid_cycles:
@@ -808,31 +869,30 @@ elif st.session_state.page == "MC4 RESHUFFLE":
         uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx", "xls"])
         accounts_df = None
         original_wb = None
-        collectors = []
+        cycle_map = {}
         campaign = None
         all_collectors = []
         if uploaded_file is not None:
             accounts_df, original_wb = load_accounts(uploaded_file)
             if accounts_df is not None:
-                cycle_map, campaign, _, all_collectors = get_collectors(accounts_df['Batch No.'], accounts_df)
+                cycle_map, campaign, all_collectors, _ = get_collectors(accounts_df['Batch No.'], accounts_df)
                 if campaign == "SBC_B2" and all_collectors:
                     st.write(f"**Campaign: {campaign}**")
                     st.write(f"Collectors Assigned for SBC_B2: {', '.join(sorted(all_collectors))}")
-                elif cycle_map or collectors:
-                    collectors = cycle_map
+                elif cycle_map or all_collectors:
                     st.write(f"**Campaign: {campaign}**")
-                    st.write(f"Collectors Assigned: {', '.join(sorted(collectors))}")
+                    st.write(f"Collectors Assigned: {', '.join(sorted(all_collectors))}")
                 else:
                     st.error("No collectors available. Ensure Batch No. contains 'SBF_SALAD', 'SBF_PL', 'SBC_B4', or 'SBC_B2' with a valid cycle.")
         if st.button("Reshuffle Collectors"):
             if accounts_df is None:
                 st.error("Please upload a valid Excel file with 'Debtor ID', 'Name', 'Batch No.', 'Account No.', and 'Cycle' columns.")
                 return
-            elif not (cycle_map or collectors) or not campaign:
+            elif not campaign or not all_collectors:
                 st.error("No collectors available. Ensure Batch No. contains 'SBF_SALAD', 'SBF_PL', 'SBC_B4', or 'SBC_B2' and a valid cycle is present.")
                 return
             else:
-                result_df = reshuffle_collectors(accounts_df, cycle_map if campaign == "SBC_B2" else collectors, campaign)
+                result_df = reshuffle_collectors(accounts_df, cycle_map, campaign, all_collectors)
                 st.subheader(f"Reshuffled Account Assignments for {campaign}")
                 st.dataframe(result_df, use_container_width=True, hide_index=True)
                 current_date = datetime.now().strftime("%m%d%y")
@@ -937,7 +997,3 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
-
-
-
-
