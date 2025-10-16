@@ -617,11 +617,14 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             (2, 9, 14, 20, 27): ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"]
         }
         if 'SALAD' in batch_numbers_str:
-            return ["EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON", "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ", "DPVENIEGAS", "JDAMPONG"], "SBF_SALAD", None, []
+            collectors = ["EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON", "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ", "DPVENIEGAS", "JDAMPONG"]
+            return collectors, "SBF_SALAD", collectors, []
         elif 'SBF_PL' in batch_numbers_str or 'SBF_LEGACY' in batch_numbers_str:
-            return ["RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER", "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON", "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC","JQGAGAM", "ERDEGUZMAN"], "SBF_PL", None, []
+            collectors = ["RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER", "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON", "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC","JQGAGAM", "ERDEGUZMAN"]
+            return collectors, "SBF_PL", collectors, []
         elif 'SBC_B4' in batch_numbers_str:
-            return ["PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "VMGORDON", "RCFANUNCIANO", "CPPERFAS", "BCBATAC"], "SBC_B4", None, []
+            collectors = ["PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "VMGORDON", "RCFANUNCIANO", "CPPERFAS", "BCBATAC"]
+            return collectors, "SBC_B4", collectors, []
         elif 'SBC_B2' in batch_numbers_str:
             # Combine all collectors for SBC_B2 to display in preview
             all_collectors = list(set(
@@ -637,7 +640,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
                 for cycle in cycle_group:
                     cycle_map[cycle] = collectors
             return cycle_map, "SBC_B2", all_collectors, all_collectors
-        return {}, None, None, []
+        return {}, None, [], []
     def reshuffle_collectors(accounts, cycle_map_or_collectors, campaign, all_collectors_b2):
         import random
         shuffled = accounts.copy()
@@ -869,30 +872,32 @@ elif st.session_state.page == "MC4 RESHUFFLE":
         uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx", "xls"])
         accounts_df = None
         original_wb = None
-        cycle_map = {}
+        collectors_or_map = {}
         campaign = None
-        all_collectors = []
+        display_collectors = []
+        all_collectors_b2 = []
         if uploaded_file is not None:
             accounts_df, original_wb = load_accounts(uploaded_file)
             if accounts_df is not None:
-                cycle_map, campaign, all_collectors, _ = get_collectors(accounts_df['Batch No.'], accounts_df)
-                if campaign == "SBC_B2" and all_collectors:
+                collectors_or_map, campaign, display_collectors, all_collectors_b2 = get_collectors(accounts_df['Batch No.'], accounts_df)
+                if campaign:
                     st.write(f"**Campaign: {campaign}**")
-                    st.write(f"Collectors Assigned for SBC_B2: {', '.join(sorted(all_collectors))}")
-                elif cycle_map or all_collectors:
-                    st.write(f"**Campaign: {campaign}**")
-                    st.write(f"Collectors Assigned: {', '.join(sorted(all_collectors))}")
+                    if display_collectors:
+                        st.write(f"Collectors Assigned: {', '.join(sorted(display_collectors))}")
                 else:
                     st.error("No collectors available. Ensure Batch No. contains 'SBF_SALAD', 'SBF_PL', 'SBC_B4', or 'SBC_B2' with a valid cycle.")
         if st.button("Reshuffle Collectors"):
             if accounts_df is None:
                 st.error("Please upload a valid Excel file with 'Debtor ID', 'Name', 'Batch No.', 'Account No.', and 'Cycle' columns.")
                 return
-            elif not campaign or not all_collectors:
+            elif not campaign or not display_collectors:
                 st.error("No collectors available. Ensure Batch No. contains 'SBF_SALAD', 'SBF_PL', 'SBC_B4', or 'SBC_B2' and a valid cycle is present.")
                 return
             else:
-                result_df = reshuffle_collectors(accounts_df, cycle_map, campaign, all_collectors)
+                if campaign == "SBC_B2":
+                    result_df = reshuffle_collectors(accounts_df, collectors_or_map, campaign, all_collectors_b2)
+                else:
+                    result_df = reshuffle_collectors(accounts_df, collectors_or_map, campaign, display_collectors)  # all_collectors_b2 not used, but pass display
                 st.subheader(f"Reshuffled Account Assignments for {campaign}")
                 st.dataframe(result_df, use_container_width=True, hide_index=True)
                 current_date = datetime.now().strftime("%m%d%y")
