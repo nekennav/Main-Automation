@@ -617,7 +617,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             (2, 9, 14, 20, 27): ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"]
         }
         if 'SALAD' in batch_numbers_str:
-            collectors = ["EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON", "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ", "DPVENIEGAS", "JDAMPONG"]
+            collectors = ["EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON", "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ", "JDAMPONG"]
             return collectors, "SBF_SALAD", collectors, []
         elif 'SBF_PL' in batch_numbers_str or 'SBF_LEGACY' in batch_numbers_str:
             collectors = ["RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER", "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON", "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC","JQGAGAM", "ERDEGUZMAN"]
@@ -1002,6 +1002,7 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
