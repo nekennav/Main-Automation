@@ -623,7 +623,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             collectors = ["RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER", "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON", "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC","JQGAGAM", "ERDEGUZMAN"]
             return collectors, "SBF_PL", collectors, []
         elif 'SBC_B4' in batch_numbers_str:
-            collectors = ["PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "JCABAHUG", "VMGORDON", "RCFANUNCIANO", "CPPERFAS", "BCBATAC"]
+            collectors = ["PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "KPALIMA", "JCABAHUG", "VMGORDON", "RCFANUNCIANO", "CPPERFAS", "BCBATAC"]
             return collectors, "SBC_B4", collectors, []
         elif 'SBC_B2' in batch_numbers_str:
             # Combine all collectors for SBC_B2 to display in preview
@@ -1002,6 +1002,7 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
