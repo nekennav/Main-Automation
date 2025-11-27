@@ -611,7 +611,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
         batch_numbers_str = ' '.join(batch_numbers.astype(str).str.upper())
         cycle_collectors = {
             (5,): ["MGARBAS", "JPBUGASTO", "RJRAZON", "MADANTAYANA", "NSINADJAN"],
-            (12,): ["CHCALFOFORO", "LAATON", "RMELENDEZ", "NNAVARROSA"],
+            (12,): ["CHCALFOFORO", "LAATON", "RMELENDEZ", "DDEPATINO", "NNAVARROSA"],
             (17,): ["JBONDOC", "LCSERVALLOS", "JBATOON", "JBASOY"],
             (24,): ["CQUESEO", "JELGARCIA", "JDDAGANIO"],
             (2, 9, 14, 20, 27): ["KAPILAPIL", "CLEGASPI", "JABIOG", "LEALCANTARA"]
@@ -1002,6 +1002,7 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
