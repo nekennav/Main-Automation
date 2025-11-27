@@ -614,7 +614,7 @@ elif st.session_state.page == "MC4 RESHUFFLE":
             (12,): ["CHCALFOFORO", "LAATON", "RMELENDEZ", "DDEPATINO", "NNAVARROSA"],
             (17,): ["JBONDOC", "LCSERVALLOS", "JBATOON", "JBASOY"],
             (24,): ["CQUESEO", "JELGARCIA", "JDDAGANIO"],
-            (2, 9, 14, 20, 27): ["KAPILAPIL", "CLEGASPI", "JABIOG", "LEALCANTARA"]
+            (2, 9, 14, 20, 27): ["KAPILAPIL", "CLEGASPI", "JDAYAO", "JABIOG", "LEALCANTARA"]
         }
         if 'SALAD' in batch_numbers_str:
             collectors = ["EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON", "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ", "JDAMPONG"]
@@ -1002,6 +1002,7 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
