@@ -17,7 +17,7 @@ except ImportError:
     st.stop()
 
 # Set page configuration (first Streamlit command)
-st.set_page_config(page_title="NYEL", layout="wide", page_icon="💻")
+st.set_page_config(page_title="NYEL", layout="wide", page_icon="computer")
 
 # Initialize session state for page navigation
 if 'page' not in st.session_state:
@@ -32,7 +32,7 @@ st.markdown("""
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-color: #000000; /* Fallback color to prevent white blanks */
+    background-color: #000000;
     animation: panningBackground 50s linear infinite;
     color: #FFFFFF;
 }
@@ -202,7 +202,7 @@ h1 {
     text-shadow: -1px -1px 0 #000000, 1px -1px 0 #000000, -1px 1px 0 #000000, 1px 1px 0 #000000;
 }
 .plotly .plotly-graph-div {
-    background-color: rgba(31, 119, 180, 0.2) !important;
+    background-color: rgba(31,119,180,0.2) !important;
 }
 .plotly .plotly-graph-div text,
 .plotly .plotly-graph-div tspan,
@@ -237,17 +237,17 @@ if st.session_state.page == 'home':
     st.markdown('<div class="sub-header">Our Tools</div>', unsafe_allow_html=True)
     col1, col2 = st.columns([1, 1], gap="medium")
     with col1:
-        if st.button("📊 SBC B2 REPORT", key="sbc_b2_button"):
+        if st.button("SBC B2 REPORT", key="sbc_b2_button"):
             st.session_state.page = "SBC B2 REPORT"
             st.rerun()
-        if st.button("🔍 DRR BREAKDOWN", key="drr_breakdown_button"):
+        if st.button("DRR BREAKDOWN", key="drr_breakdown_button"):
             st.session_state.page = "DRR BREAKDOWN"
             st.rerun()
     with col2:
-        if st.button("🔄 MC4 RESHUFFLE", key="mc4_reshuffle_button"):
+        if st.button("MC4 RESHUFFLE", key="mc4_reshuffle_button"):
             st.session_state.page = "MC4 RESHUFFLE"
             st.rerun()
-        if st.button("📂 PREDICTIVE MERGER", key="predictive_merger_button"):
+        if st.button("PREDICTIVE MERGER", key="predictive_merger_button"):
             st.session_state.page = "PREDICTIVE MERGER"
             st.rerun()
 
@@ -589,332 +589,243 @@ elif st.session_state.page == "MC4 RESHUFFLE":
     if st.button("Back to Home", key="back_home_mc4", help="Return to home page", type="secondary"):
         st.session_state.page = 'home'
         st.rerun()
+
     st.title("MC4 RESHUFFLE")
+
     @st.cache_resource
     def load_accounts(file):
         try:
             df = pd.read_excel(file)
             required_columns = ['Debtor ID', 'Batch No.', 'Name', 'Account No.', 'Cycle']
-            missing_columns = [col for col in required_columns if col not in df.columns]
-            if missing_columns:
-                st.error(f"Excel file must contain these columns: {', '.join(missing_columns)}")
+            missing = [col for col in required_columns if col not in df.columns]
+            if missing:
+                st.error(f"Missing columns: {', '.join(missing)}")
                 return None, None
             if 'Collector' not in df.columns:
                 df['Collector'] = ''
-            # Load workbook to preserve formatting
             wb = pd.ExcelFile(file, engine='openpyxl').book
             return df, wb
         except Exception as e:
-            st.error(f"Error reading Excel file: {e}")
+            st.error(f"Error reading file: {e}")
             return None, None
+
     def get_collectors(batch_numbers, df):
-        batch_numbers_str = ' '.join(batch_numbers.astype(str).str.upper())
-        cycle_collectors = {
-            (5,): ["MGARBAS", "JPBUGASTO", "RJRAZON", "SIVASQUEZ", "MADANTAYANA", "NSINADJAN"],
-            (12,): ["CHCALFOFORO", "LAATON", "RMELENDEZ", "DDEPATINO", "JNAINZA", "NNAVARROSA"],
-            (17,): ["JBONDOC", "LCSERVALLOS", "JBATOON", "JBASOY"],
-            (24,): ["CQUESEO", "JELGARCIA", "KTSUMBANG", "JDDAGANIO"],
-            (2, 9, 14, 20, 27): ["KAPILAPIL", "CLEGASPI", "KANAVILLON", "JABIOG", "LEALCANTARA"]
+        batch_str = ' '.join(batch_numbers.astype(str).str.upper())
+
+        # B2 cycles (unchanged)
+        b2_cycle_collectors = {
+            5:  ["JABIOG", "RJRAZON", "MADANTAYANA", "NSINADJAN"],
+            12: ["CHCALFOFORO", "LAATON", "RMELENDEZ", "NNAVARROSA"],
+            17: ["JBONDOC", "KMCRISOSTOMO", "MGMADAYAG", "JBASOY"],
+            24: ["LCSERVALLOS", "JELGARCIA", "JDDAGANIO"],
+            2:  ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"],
+            9:  ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"],
+            14: ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"],
+            20: ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"],
+            27: ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"]
         }
-        if 'SALAD' in batch_numbers_str:
-            collectors = ["EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON", "RTABION", "SNAZURES", "KMHORCA", "RLCORPUZ", "JDAMPONG"]
-            return collectors, "SBF_SALAD", collectors, []
-        elif 'SBF_PL' in batch_numbers_str or 'SBF_LEGACY' in batch_numbers_str:
-            collectors = ["RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER", "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON", "MCSOLIS", "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC","JQGAGAM", "ERDEGUZMAN"]
-            return collectors, "SBF_PL", collectors, []
-        elif 'SBC_B4' in batch_numbers_str:
-            collectors = ["PCLAGARIO", "JVVINCULADO", "NBSALIGUMBA", "KPALIMA", "JCABAHUG", "VMGORDON", "RCFANUNCIANO", "CPPERFAS", "BCBATAC"]
-            return collectors, "SBC_B4", collectors, []
-        elif 'SBC_B2' in batch_numbers_str:
-            # Combine all collectors for SBC_B2 to display in preview
-            all_collectors = list(set(
-                cycle_collectors[(5,)] +
-                cycle_collectors[(12,)] +
-                cycle_collectors[(17,)] +
-                cycle_collectors[(24,)] +
-                cycle_collectors[(2, 9, 14, 20, 27)]
-            ))
-            # Map cycles to collectors for assignment
-            cycle_map = {}
-            for cycle_group, collectors in cycle_collectors.items():
-                for cycle in cycle_group:
-                    cycle_map[cycle] = collectors
-            return cycle_map, "SBC_B2", all_collectors, all_collectors
+
+        # NEW: B4 per-cycle collectors — exactly as you requested
+        b4_cycle_collectors = {
+            5:  ["NBSALIGUMBA", "JCABAHUG"],
+            12: ["VMGORDON", "KPALIMA"],
+            17: ["CPPERFAS", "JVVINCULADO"],
+            20: ["BCBATAC", "RCFANUNCIANO"],
+            24: ["PCLAGARIO"]
+        }
+
+        if 'SALAD' in batch_str:
+            cols = ["EHFRANCIA", "JARELUCIO", "JEGUADALUPE", "DAATON", "RTABION",
+                    "SNAZURES", "KMHORCA", "RLCORPUZ", "DPVENIEGAS", "JDAMPONG"]
+            return cols, "SBF_SALAD", cols, []
+
+        elif 'SBF_PL' in batch_str or 'SBF_LEGACY' in batch_str:
+            cols = ["RCBANICO", "JBDECHAVEZ", "IMMUNOZ", "BCBAGAYAS", "JEFERRER",
+                    "JCANCINO", "VGPARIS", "JBRESULTAY", "MGDIZON", "MCSOLIS",
+                    "SARODRIGUEZ", "ECAMADO", "MCMACATIGBAC", "JQGAGAM", "ERDEGUZMAN"]
+            return cols, "SBF_PL", cols, []
+
+        elif 'SBC_B4' in batch_str:
+            all_b4 = list({c for clist in b4_cycle_collectors.values() for c in clist})
+            return b4_cycle_collectors, "SBC_B4", all_b4, all_b4
+
+        elif 'SBC_B2' in batch_str:
+            all_b2 = list({c for clist in b2_cycle_collectors.values() for c in clist})
+            return b2_cycle_collectors, "SBC_B2", all_b2, all_b2
+
         return {}, None, [], []
-    def reshuffle_collectors(accounts, cycle_map_or_collectors, campaign, all_collectors_b2):
-        import random
-        shuffled = accounts.copy()
-        if campaign == "SBC_B2":
-            cycle_map = cycle_map_or_collectors
-            # Get unique cycles in the data (handle NaN)
-            data_cycles = shuffled['Cycle'].dropna()
-            data_cycles = pd.to_numeric(data_cycles, errors='coerce')
-            data_cycles = data_cycles.dropna().astype(int)
-            all_cycles = set(data_cycles.unique())
-            specified_cycles = set(cycle_map.keys())
-            
-            # Handle cycles not in the map: reshuffle among all B2 collectors
-            invalid_cycles = all_cycles - specified_cycles
-            if invalid_cycles:
-                collectors = all_collectors_b2
-                if collectors:
-                    invalid_accounts_mask = shuffled['Cycle'].isin(invalid_cycles) | (~shuffled['Cycle'].isin(specified_cycles))
-                    invalid_accounts = shuffled[invalid_accounts_mask]
-                    if not invalid_accounts.empty:
-                        # Use the generic reshuffle logic (adapted from else branch)
-                        num_accounts = len(invalid_accounts)
-                        num_collectors = len(collectors)
-                        if num_accounts > 0 and num_collectors > 0:
-                            base_accounts = num_accounts // num_collectors
-                            remainder = num_accounts % num_collectors
-                            assignment_counts = [base_accounts + 1 for _ in range(remainder)] + [base_accounts for _ in range(num_collectors - remainder)]
-                            
-                            assignments = []
-                            for i, collector in enumerate(collectors):
-                                assignments.extend([collector] * assignment_counts[i])
-                            
-                            random.shuffle(assignments)
-                            
-                            account_indices = list(invalid_accounts.index)
-                            random.shuffle(account_indices)
-                            
-                            original_collectors = invalid_accounts['Collector'].copy()
-                            collector_slots = {collector: list(range(len(assignments))) for collector in collectors}
-                            assigned_slots = {collector: [] for collector in collectors}
-                            
-                            for account_idx in account_indices:
-                                original_collector = original_collectors.loc[account_idx]
-                                
-                                possible_collectors = []
-                                for collector in collectors:
-                                    if collector != original_collector and len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
-                                        possible_collectors.append(collector)
-                                
-                                if not possible_collectors:
-                                    possible_collectors = [c for c in collectors if len(assigned_slots[c]) < assignment_counts[collectors.index(c)]]
-                                
-                                if possible_collectors:
-                                    selected_collector = min(possible_collectors, key=lambda c: len(assigned_slots[c]))
-                                    slot_index = collector_slots[selected_collector].pop(0)
-                                    assignments[slot_index] = selected_collector
-                                    assigned_slots[selected_collector].append(account_idx)
-                                    shuffled.at[account_idx, 'Collector'] = selected_collector
-                                else:
-                                    for collector in collectors:
-                                        if len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
-                                            slot_index = collector_slots[collector].pop(0)
-                                            assignments[slot_index] = collector
-                                            assigned_slots[collector].append(account_idx)
-                                            shuffled.at[account_idx, 'Collector'] = collector
-                                            break
-            
-            # Now handle valid cycles as before
-            valid_cycles = all_cycles.intersection(specified_cycles)
-            if not valid_cycles and not invalid_cycles:
-                st.error(f"No valid cycles found in the uploaded file. Valid cycles are: {', '.join(map(str, sorted(specified_cycles)))}")
-                return shuffled
-            for cycle in valid_cycles:
-                collectors = cycle_map.get(cycle, [])
-                if not collectors:
-                    st.warning(f"No collectors defined for Cycle {cycle}. Skipping reshuffle for this cycle.")
+
+    def reshuffle_collectors(accounts, cycle_map_or_collectors, campaign, all_collectors):
+        df = accounts.copy()
+        df['Cycle'] = pd.to_numeric(df['Cycle'], errors='coerce')
+
+        # Handle both SBC_B2 and SBC_B4 the same way (cycle-based)
+        if campaign in ["SBC_B2", "SBC_B4"]:
+            cycle_map = cycle_map_or_collectors  # dict: cycle → collectors
+
+            # Get all unique cycles in the data
+            all_cycles = df['Cycle'].unique()
+
+            # Process known cycles
+            for cycle in all_cycles:
+                if pd.isna(cycle):
+                    continue  # Skip NaN cycles
+
+                cycle_data = df[df['Cycle'] == cycle]
+                if cycle_data.empty:
                     continue
-                cycle_accounts = shuffled[shuffled['Cycle'] == cycle]
-                if cycle_accounts.empty:
-                    st.warning(f"No accounts found for Cycle {cycle}.")
+
+                if cycle in cycle_map:
+                    collectors = cycle_map[cycle]
+                else:
+                    # For unknown cycles, use all collectors
+                    collectors = all_collectors
+
+                n_acc = len(cycle_data)
+                n_col = len(collectors)
+                if n_col == 0:
                     continue
-                num_accounts = len(cycle_accounts)
-                num_collectors = len(collectors)
-                if num_accounts > 0 and num_collectors > 0:
-                    # Calculate equal distribution: base + extras to first few collectors
-                    base_accounts = num_accounts // num_collectors
-                    remainder = num_accounts % num_collectors
-                    # Create assignment counts for each collector
-                    assignment_counts = [base_accounts + 1 for _ in range(remainder)] + [base_accounts for _ in range(num_collectors - remainder)]
-                    
-                    # Create the assignments list with exact counts
-                    assignments = []
-                    for i, collector in enumerate(collectors):
-                        assignments.extend([collector] * assignment_counts[i])
-                    
-                    # Shuffle the assignments to randomize
-                    random.shuffle(assignments)
-                    
-                    # Get the indices of cycle accounts and shuffle them too for fair distribution
-                    account_indices = list(cycle_accounts.index)
-                    random.shuffle(account_indices)
-                    
-                    # Now, to avoid assigning the same collector if possible, we'll try to match
-                    # but preserve the exact counts per collector
-                    original_collectors = cycle_accounts['Collector'].copy()
-                    
-                    # Create a mapping of available slots per collector
-                    collector_slots = {collector: list(range(len(assignments))) for collector in collectors}
-                    for i, assignment in enumerate(assignments):
-                        collector_slots[assignment].append(i)
-                    
-                    assigned_slots = {collector: [] for collector in collectors}
-                    
-                    # Assign accounts to collectors while trying to avoid original
-                    for account_idx in account_indices:
-                        original_collector = original_collectors.loc[account_idx]
-                        
-                        # Find a suitable collector (prefer not original, and one with remaining slots)
-                        possible_collectors = []
-                        for collector in collectors:
-                            if collector != original_collector and len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
-                                possible_collectors.append(collector)
-                        
-                        if not possible_collectors:
-                            # If no alternatives, use any collector with slots
-                            possible_collectors = [c for c in collectors if len(assigned_slots[c]) < assignment_counts[collectors.index(c)]]
-                        
-                        if possible_collectors:
-                            # Choose the one with fewest assignments so far (for balance, though counts are fixed)
-                            selected_collector = min(possible_collectors, key=lambda c: len(assigned_slots[c]))
-                            # Assign
-                            slot_index = collector_slots[selected_collector].pop(0)
-                            assignments[slot_index] = selected_collector
-                            assigned_slots[selected_collector].append(account_idx)
-                            shuffled.at[account_idx, 'Collector'] = selected_collector
-                        else:
-                            # Fallback: assign arbitrarily while maintaining counts
-                            for collector in collectors:
-                                if len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
-                                    slot_index = collector_slots[collector].pop(0)
-                                    assignments[slot_index] = collector
-                                    assigned_slots[collector].append(account_idx)
-                                    shuffled.at[account_idx, 'Collector'] = collector
-                                    break
+
+                base = n_acc // n_col
+                extra = n_acc % n_col
+                counts = [base + 1 if i < extra else base for i in range(n_col)]
+
+                # Build assignment list
+                assignments = []
+                for i, col in enumerate(collectors):
+                    assignments.extend([col] * counts[i])
+                random.shuffle(assignments)
+
+                indices = cycle_data.index.tolist()
+                random.shuffle(indices)
+
+                original = cycle_data['Collector'].copy()
+                slots = {c: list(range(sum(counts[:i]), sum(counts[:i+1]))) for i, c in enumerate(collectors)}
+                used = {c: [] for c in collectors}
+
+                for idx in indices:
+                    orig = original.loc[idx]
+
+                    # Prefer different collector
+                    candidates = [c for c in collectors if c != orig and len(used[c]) < counts[collectors.index(c)]]
+                    if not candidates:
+                        candidates = [c for c in collectors if len(used[c]) < counts[collectors.index(c)]]
+
+                    if candidates:
+                        chosen = min(candidates, key=lambda x: len(used[x]))
+                        slot = slots[chosen].pop(0)
+                        used[chosen].append(idx)
+                        df.at[idx, 'Collector'] = chosen
+
+            return df
+
+        # Non-cycle campaigns (SALAD, PL, etc.)
         else:
             collectors = cycle_map_or_collectors
             if not collectors:
-                return shuffled
-            num_accounts = len(shuffled)
-            num_collectors = len(collectors)
-            if num_accounts > 0 and num_collectors > 0:
-                # Calculate equal distribution for non-SBC_B2 campaigns
-                base_accounts = num_accounts // num_collectors
-                remainder = num_accounts % num_collectors
-                assignment_counts = [base_accounts + 1 for _ in range(remainder)] + [base_accounts for _ in range(num_collectors - remainder)]
-                
-                # Create assignments
-                assignments = []
-                for i, collector in enumerate(collectors):
-                    assignments.extend([collector] * assignment_counts[i])
-                
-                random.shuffle(assignments)
-                
-                # Shuffle indices
-                account_indices = list(shuffled.index)
-                random.shuffle(account_indices)
-                
-                # Avoid original where possible, preserving counts
-                original_collectors = shuffled['Collector'].copy()
-                collector_slots = {collector: list(range(len(assignments))) for collector in collectors}
-                assigned_slots = {collector: [] for collector in collectors}
-                
-                for account_idx in account_indices:
-                    original_collector = original_collectors.loc[account_idx]
-                    
-                    possible_collectors = []
-                    for collector in collectors:
-                        if collector != original_collector and len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
-                            possible_collectors.append(collector)
-                    
-                    if not possible_collectors:
-                        possible_collectors = [c for c in collectors if len(assigned_slots[c]) < assignment_counts[collectors.index(c)]]
-                    
-                    if possible_collectors:
-                        selected_collector = min(possible_collectors, key=lambda c: len(assigned_slots[c]))
-                        slot_index = collector_slots[selected_collector].pop(0)
-                        assignments[slot_index] = selected_collector
-                        assigned_slots[selected_collector].append(account_idx)
-                        shuffled.at[account_idx, 'Collector'] = selected_collector
-                    else:
-                        # Fallback
-                        for collector in collectors:
-                            if len(assigned_slots[collector]) < assignment_counts[collectors.index(collector)]:
-                                slot_index = collector_slots[collector].pop(0)
-                                assignments[slot_index] = collector
-                                assigned_slots[collector].append(account_idx)
-                                shuffled.at[account_idx, 'Collector'] = collector
-                                break
-        return shuffled
+                return df
+
+            n_acc = len(df)
+            n_col = len(collectors)
+            base = n_acc // n_col
+            extra = n_acc % n_col
+            counts = [base + 1 if i < extra else base for i in range(n_col)]
+
+            assignments = []
+            for i, col in enumerate(collectors):
+                assignments.extend([col] * counts[i])
+            random.shuffle(assignments)
+
+            indices = df.index.tolist()
+            random.shuffle(indices)
+
+            original = df['Collector'].copy()
+            slots = {c: list(range(sum(counts[:i]), sum(counts[:i+1]))) for i, c in enumerate(collectors)}
+            used = {c: [] for c in collectors}
+
+            for idx in indices:
+                orig = original.loc[idx]
+                candidates = [c for c in collectors if c != orig and len(used[c]) < counts[collectors.index(c)]]
+                if not candidates:
+                    candidates = [c for c in collectors if len(used[c]) < counts[collectors.index(c)]]
+
+                if candidates:
+                    chosen = min(candidates, key=lambda x: len(used[x]))
+                    slot = slots[chosen].pop(0)
+                    used[chosen].append(idx)
+                    df.at[idx, 'Collector'] = chosen
+
+            return df
+
     def apply_excel_formatting(writer, df, wb):
-        worksheet = writer.sheets['Sheet1']
-        # Apply header formatting
-        header_fill = PatternFill(start_color='1F77B4', end_color='1F77B4', fill_type='solid')
-        header_font = Font(bold=True, color='FFFFFF')
-        for col_idx, column in enumerate(df.columns, 1):
-            cell = worksheet.cell(row=1, column=col_idx)
-            cell.fill = header_fill
-            cell.font = header_font
+        ws = writer.sheets['Sheet1']
+        fill = PatternFill(start_color='1F77B4', end_color='1F77B4', fill_type='solid')
+        font = Font(bold=True, color='FFFFFF')
+        for i, col in enumerate(df.columns, 1):
+            cell = ws.cell(1, i)
+            cell.fill = fill
+            cell.font = font
             cell.alignment = Alignment(horizontal='center', vertical='center')
-        # Copy column widths from original workbook
+
         if wb and 'Sheet1' in wb.sheetnames:
-            ws = wb['Sheet1']
-            for col_idx, column in enumerate(df.columns, 1):
-                col_letter = get_column_letter(col_idx)
-                try:
-                    worksheet.column_dimensions[col_letter].width = ws.column_dimensions[col_letter].width or 15
-                except:
-                    worksheet.column_dimensions[col_letter].width = 15
-        # Apply text style to string columns
-        text_style = NamedStyle(name='text', number_format='@')
-        if 'text' not in writer.book.named_styles:
-            writer.book.add_named_style(text_style)
-        for col_idx, column in enumerate(df.columns, 1):
-            if df[column].dtype == 'object':
-                for row_idx in range(2, len(df) + 2):
-                    cell = worksheet.cell(row=row_idx, column=col_idx)
-                    cell.style = 'text'
-    def main():
-        uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx", "xls"])
-        accounts_df = None
-        original_wb = None
-        collectors_or_map = {}
-        campaign = None
-        display_collectors = []
-        all_collectors_b2 = []
-        if uploaded_file is not None:
-            accounts_df, original_wb = load_accounts(uploaded_file)
-            if accounts_df is not None:
-                collectors_or_map, campaign, display_collectors, all_collectors_b2 = get_collectors(accounts_df['Batch No.'], accounts_df)
-                if campaign:
-                    st.write(f"**Campaign: {campaign}**")
-                    if display_collectors:
-                        st.write(f"Collectors Assigned: {', '.join(sorted(display_collectors))}")
-                else:
-                    st.error("No collectors available. Ensure Batch No. contains 'SBF_SALAD', 'SBF_PL', 'SBC_B4', or 'SBC_B2' with a valid cycle.")
-        if st.button("Reshuffle Collectors"):
-            if accounts_df is None:
-                st.error("Please upload a valid Excel file with 'Debtor ID', 'Name', 'Batch No.', 'Account No.', and 'Cycle' columns.")
-                return
-            elif not campaign or not display_collectors:
-                st.error("No collectors available. Ensure Batch No. contains 'SBF_SALAD', 'SBF_PL', 'SBC_B4', or 'SBC_B2' and a valid cycle is present.")
-                return
+            orig = wb['Sheet1']
+            for i, _ in enumerate(df.columns, 1):
+                letter = get_column_letter(i)
+                if letter in orig.column_dimensions:
+                    ws.column_dimensions[letter].width = orig.column_dimensions[letter].width
+
+        for i, col in enumerate(df.columns, 1):
+            if df[col].dtype == 'object':
+                for r in range(2, len(df)+2):
+                    ws.cell(r, i).number_format = '@'
+
+    # ===================== MAIN =====================
+    uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx", "xls"])
+    accounts_df = None
+    original_wb = None
+    collectors_or_map = {}
+    campaign = None
+    display_collectors = []
+    all_collectors = []
+
+    if uploaded_file:
+        accounts_df, original_wb = load_accounts(uploaded_file)
+        if accounts_df is not None:
+            collectors_or_map, campaign, display_collectors, all_collectors = get_collectors(accounts_df['Batch No.'], accounts_df)
+            if campaign:
+                st.success(f"**Campaign Detected: {campaign}**")
+                st.write("Collectors:", ", ".join(sorted(display_collectors)))
             else:
-                if campaign == "SBC_B2":
-                    result_df = reshuffle_collectors(accounts_df, collectors_or_map, campaign, all_collectors_b2)
-                else:
-                    result_df = reshuffle_collectors(accounts_df, collectors_or_map, campaign, display_collectors)  # all_collectors_b2 not used, but pass display
-                st.subheader(f"Reshuffled Account Assignments for {campaign}")
-                st.dataframe(result_df, use_container_width=True, hide_index=True)
-                current_date = datetime.now().strftime("%m%d%y")
-                campaign_filename = f"{campaign.replace(' ', '*')}_{current_date}_RESHUFFLE.xlsx"
-                output_buffer = io.BytesIO()
-                with pd.ExcelWriter(output_buffer, engine='openpyxl') as writer:
-                    result_df.to_excel(writer, index=False, sheet_name='Sheet1')
-                    apply_excel_formatting(writer, result_df, original_wb)
-                output_buffer.seek(0)
-                st.download_button(
-                    label="Download Reshuffled Assignments",
-                    data=output_buffer,
-                    file_name=campaign_filename,
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-    if __name__ == "__main__":
-        main()
+                st.error("Batch No. must contain: SALAD, SBF_PL, SBC_B4, or SBC_B2")
+
+    if st.button("Reshuffle Collectors", type="primary"):
+        if accounts_df is None or accounts_df.empty or not campaign:
+            st.error("Upload file and ensure correct Batch No.")
+            st.stop()
+
+        with st.spinner("Reshuffling..."):
+            result_df = reshuffle_collectors(accounts_df, collectors_or_map, campaign, all_collectors)
+
+        st.success("Done!")
+        st.dataframe(result_df, use_container_width=True, hide_index=True)
+
+        date_str = datetime.now().strftime("%m%d%y")
+        filename = f"{campaign}_{date_str}_RESHUFFLE.xlsx"
+
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            result_df.to_excel(writer, index=False, sheet_name='Sheet1')
+            apply_excel_formatting(writer, result_df, original_wb)
+        buffer.seek(0)
+
+        st.download_button(
+            label="Download Reshuffled File",
+            data=buffer,
+            file_name=filename,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        # DISTRIBUTION SUMMARY REMOVED AS REQUESTED
 
 # PREDICTIVE MERGER
 elif st.session_state.page == "PREDICTIVE MERGER":
@@ -1002,15 +913,3 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
-
-
-
-
-
-
-
-
-
-
-
-
