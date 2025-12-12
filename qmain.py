@@ -614,15 +614,15 @@ elif st.session_state.page == "MC4 RESHUFFLE":
 
         # B2 cycles (unchanged)
         b2_cycle_collectors = {
-            5:  ["JABIOG", "RJRAZON", "MADANTAYANA", "NSINADJAN"],
-            12: ["CHCALFOFORO", "LAATON", "RMELENDEZ", "NNAVARROSA"],
-            17: ["JBONDOC", "KMCRISOSTOMO", "MGMADAYAG", "JBASOY"],
-            24: ["LCSERVALLOS", "KTSUMBANG", "JELGARCIA", "JDDAGANIO"],
-            2:  ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"],
-            9:  ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"],
-            14: ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"],
-            20: ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"],
-            27: ["KAPILAPIL", "CLEGASPI", "MGARBAS", "LEALCANTARA"]
+            5:  ["JPBUGASTO", "RJRAZON", "MADANTAYANA", "SIVASQUEZ", "MGARBAS", "NSINADJAN", "BNOSIA"],
+            12: ["CHCALFOFORO", "LAATON", "RMELENDEZ", "DDEPATINO", "NNAVARROSA", "RMGALSIM"],
+            17: ["JBONDOC", "LCSERVALLOS", "JNAINZA", "JBATOON", "JBASOY", "ADSARMIENTO"],
+            24: ["CQUESEO", "KTSUMBANG", "JELGARCIA", "JDDAGANIO", "NVMAMIGO"],
+            2:  ["KAPILAPIL", "CLEGASPI", "KANAVILLON", "LEALCANTARA", "JABIOG", "EECRUZ"],
+            9:  ["KAPILAPIL", "CLEGASPI", "KANAVILLON", "LEALCANTARA", "JABIOG", "EECRUZ"],
+            14: ["KAPILAPIL", "CLEGASPI", "KANAVILLON", "LEALCANTARA", "JABIOG", "EECRUZ"],
+            20: ["KAPILAPIL", "CLEGASPI", "KANAVILLON", "LEALCANTARA", "JABIOG", "EECRUZ"],
+            27: ["KAPILAPIL", "CLEGASPI", "KANAVILLON", "LEALCANTARA", "JABIOG", "EECRUZ"]
         }
 
         # NEW: B4 per-cycle collectors — exactly as you requested
@@ -913,4 +913,5 @@ elif st.session_state.page == "PREDICTIVE MERGER":
         except Exception as e:
             st.error(f"Error creating merged file: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
